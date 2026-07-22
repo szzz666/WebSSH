@@ -161,6 +161,8 @@ public final class WebServer {
         });
         service.get("/api/v1/file-jobs/:id", (req, res) -> json(res, FileJobManager.status(req.params("id"))));
         service.get("/api/v1/connections/:id/metrics", WebServer::metrics);
+        service.get("/vendor/vue.global.prod.js", (req, res) -> staticResource(res, "/META-INF/resources/webjars/vue/3.5.13/dist/vue.global.prod.js", "application/javascript; charset=utf-8"));
+        service.get("/vendor/axios.min.js", (req, res) -> staticResource(res, "/META-INF/resources/webjars/axios/1.7.8/dist/axios.min.js", "application/javascript; charset=utf-8"));
         service.post("/api/v1/connections/:id/tasks", (req, res) -> {
             Map<String, Object> data = JsonUtil.toMap(req.body());
             String taskId = TaskManager.start(req.params("id"), string(data.get("command")));

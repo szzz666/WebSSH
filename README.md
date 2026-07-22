@@ -16,6 +16,7 @@
 - 保存连接配置、操作记录和界面偏好
 - 浅色、深色及跟随系统主题
 - 桌面端和移动端响应式界面
+- 提供面向旧版 Android WebView 的兼容脚本和启动失败提示
 
 ## 技术栈
 
@@ -163,7 +164,7 @@ $HOME/.webssh/screen-sessions
 - 请只确认通过可信渠道核对过的主机指纹。
 - 远程文件、命令执行、重启服务器等操作使用所连接 SSH 用户的权限，使用高权限账号时应格外谨慎。
 - 项目本身未配置 HTTPS。生产环境应使用反向代理提供 HTTPS/WSS，并限制可信来源和网络范围。
-- 页面中的 Vue、Axios、Ace Editor 及默认壁纸依赖外部 CDN 或网络服务；受限网络环境下部分组件可能无法加载。
+- Vue、Axios 和终端组件由 WebSSH 本地提供；Ace Editor 及默认壁纸仍依赖外部 CDN 或网络服务，受限网络环境下对应功能可能无法加载。
 
 ## 项目结构
 
@@ -183,6 +184,12 @@ WebSSH/
 ```
 
 ## 开发与验证
+
+修改 `src/main/resources/public/webssh.js` 后，需要重新生成旧版 Android WebView 使用的兼容脚本：
+
+```bash
+npx --yes esbuild@0.25.6 src/main/resources/public/webssh.js --outfile=src/main/resources/public/webssh.compat.js --target=chrome64 --format=iife --charset=utf8
+```
 
 编译项目：
 

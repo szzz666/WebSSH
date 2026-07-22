@@ -77,7 +77,8 @@
     watch: {
       'settings.theme'() { this.applyTheme(); },
       'settings.save'(value) { if (!value) { this.connections.forEach(item => { item.password = ''; item.privateKey = ''; item.passphrase = ''; }); } },
-       font() { if (this.terminal) this.terminal.options.fontSize = this.font; Object.values(this.screenWindows).forEach(win => { if (win.terminal) { win.terminal.options.fontSize = this.font; win.fit?.fit(); } }); const surface = document.querySelector('#terminal-surface'); if (surface) surface.style.setProperty('--terminal-size', `${this.font}px`); }
+      font() { if (this.terminal) this.terminal.options.fontSize = this.font; Object.values(this.screenWindows).forEach(win => { if (win.terminal) { win.terminal.options.fontSize = this.font; win.fit?.fit(); } }); const surface = document.querySelector('#terminal-surface'); if (surface) surface.style.setProperty('--terminal-size', `${this.font}px`); },
+      connection: { handler(value) { const id = value?.id || null; if (id === this.loadedDesktopConnectionId) return; this.loadedDesktopConnectionId = id; if (id) this.loadDesktopEntries().catch(error => this.toast(`桌面加载失败：${error.message}`, 'error')); else this.desktopEntries = []; }, deep: true }
     },
     methods: {
       updateClock() { const now = this.connection && this.serverTimeOffset ? new Date(Date.now() + this.serverTimeOffset) : new Date(); this.clock = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }); },
@@ -369,10 +370,9 @@
       formatDate(value) { return value ? new Date(value).toLocaleDateString() : '-'; },
       formatDateTime(value) { return new Date(value).toLocaleString(); }
     },
-    watch: {
-      connection: { handler(value) { const id = value?.id || null; if (id === this.loadedDesktopConnectionId) return; this.loadedDesktopConnectionId = id; if (id) this.loadDesktopEntries().catch(error => this.toast(`桌面加载失败：${error.message}`, 'error')); else this.desktopEntries = []; }, deep: true }
-    },
     mounted() {
+      clearTimeout(window.websshStartupTimer);
+      document.querySelector('#startup-error')?.remove();
       this.updateClock();
       this.clockTimer = setInterval(() => this.updateClock(), 1000);
       try {
