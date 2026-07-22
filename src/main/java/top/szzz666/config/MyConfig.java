@@ -25,8 +25,6 @@ public class MyConfig {
     public static String serverHost = "127.0.0.1";
     @ConfigItem(key = "server.port", comment = "REST、WebSocket 与静态页面端口")
     public static int serverPort = 8080;
-    @ConfigItem(key = "server.wsPort", comment = "WebSocket 终端与任务流端口")
-    public static int wsPort = 8081;
     @ConfigItem(key = "ssh.connectTimeoutMs", comment = "SSH 建连与认证超时（毫秒）")
     public static int connectTimeoutMs = 15000;
     @ConfigItem(key = "ssh.commandTimeoutMs", comment = "监控与任务命令超时（毫秒）")

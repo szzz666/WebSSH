@@ -56,7 +56,6 @@ public final class TaskManager {
         private final String id;
         private final StringBuilder history = new StringBuilder();
         private volatile Session subscriber;
-        private volatile org.java_websocket.WebSocket javaSubscriber;
         private volatile boolean done;
         Task(String id) { this.id = id; }
         public synchronized void subscribe(Session session) {
@@ -65,12 +64,6 @@ public final class TaskManager {
             if (done) send("status", "completed");
         }
         public synchronized void unsubscribe(Session session) { if (subscriber == session) subscriber = null; }
-        public synchronized void subscribe(org.java_websocket.WebSocket socket) {
-            javaSubscriber = socket;
-            if (!history.isEmpty() && socket.isOpen()) socket.send(JsonUtil.toCompactJson(Map.of("type", "output", "data", history.toString(), "taskId", id)));
-            if (done && socket.isOpen()) socket.send(JsonUtil.toCompactJson(Map.of("type", "status", "data", "completed", "taskId", id)));
-        }
-        public synchronized void unsubscribe(org.java_websocket.WebSocket socket) { if (javaSubscriber == socket) javaSubscriber = null; }
         synchronized void publish(String type, String data) {
             if ("output".equals(type)) history.append(data);
             send(type, data);
@@ -78,7 +71,6 @@ public final class TaskManager {
         private void send(String type, String data) {
             try {
                 if (subscriber != null && subscriber.isOpen()) subscriber.getRemote().sendString(JsonUtil.toCompactJson(Map.of("type", type, "data", data, "taskId", id)));
-                if (javaSubscriber != null && javaSubscriber.isOpen()) javaSubscriber.send(JsonUtil.toCompactJson(Map.of("type", type, "data", data, "taskId", id)));
             } catch (Exception ignored) {}
         }
     }

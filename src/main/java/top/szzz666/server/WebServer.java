@@ -54,6 +54,8 @@ public final class WebServer {
 
     public static void start() {
         service = Service.ignite().ipAddress(MyConfig.serverHost).port(MyConfig.serverPort);
+        service.webSocket("/api/v1/sessions/*", TerminalWebSocket.class);
+        service.webSocket("/api/v1/tasks/*", TaskWebSocket.class);
         service.staticFiles.location("/public");
         service.staticFiles.expireTime(3600);
         service.before((request, response) -> response.type("application/json; charset=utf-8"));

@@ -157,7 +157,7 @@
         try { await this.api(`/api/v1/connections/${encodeURIComponent(saved.id)}/status`); this.connection = saved; this.suppressClose = false; this.windows.welcome.visible = false; this.toast('已恢复 SSH 连接', 'success'); this.syncServerTime(); }
         catch (_) { sessionStorage.removeItem(activeConnectionKey); }
       },
-      wsUrl(id, screenName = '') { const scheme = location.protocol === 'https:' ? 'wss:' : 'ws:'; const host = ['localhost', '::1', '[::1]'].includes(location.hostname) ? '127.0.0.1' : location.hostname; const endpoint = screenName ? `screen/${encodeURIComponent(screenName)}` : 'terminal'; return `${scheme}//${host}:8081/api/v1/sessions/${encodeURIComponent(id)}/${endpoint}`; },
+      wsUrl(id, screenName = '') { const scheme = location.protocol === 'https:' ? 'wss:' : 'ws:'; const endpoint = screenName ? `screen/${encodeURIComponent(screenName)}` : 'terminal'; return `${scheme}//${location.host}/api/v1/sessions/${encodeURIComponent(id)}/${endpoint}`; },
       connectTerminal() {
         if (!this.connection || !this.terminal) return;
         if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }

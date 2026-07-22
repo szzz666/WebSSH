@@ -27,6 +27,10 @@ public class TerminalWebSocket {
     public void onConnect(Session session) {
         webSocket = session;
         try {
+            String path = session.getUpgradeRequest().getRequestURI().getPath();
+            if (!path.matches("/api/v1/sessions/[^/]+/(terminal|screen/webssh-[a-f0-9]{12})")) {
+                throw new ApiException(400, "INVALID_WEBSOCKET_PATH", "Unsupported terminal WebSocket path");
+            }
             String id = pathId(session, "sessions");
             shell = (ChannelShell) ConnectionManager.require(id).session().openChannel("shell");
             shell.setPtyType("xterm-256color");
@@ -34,6 +38,11 @@ public class TerminalWebSocket {
             InputStream output = shell.getInputStream();
             input = shell.getOutputStream();
             shell.connect(MyConfig.connectTimeoutMs);
+            String screenName = pathValue(session, "screen");
+            if (screenName != null) {
+                input.write(ScreenSessionManager.attachCommand(id, screenName).getBytes(StandardCharsets.UTF_8));
+                input.flush();
+            }
             send(Map.of("type", "status", "message", "connected"));
             Thread.ofVirtual().name("ssh-terminal-" + id).start(() -> pump(output));
         } catch (ApiException e) {
@@ -91,9 +100,15 @@ public class TerminalWebSocket {
     private void closeShell() { if (shell != null) shell.disconnect(); }
 
     static String pathId(Session session, String segment) {
+        String value = pathValue(session, segment);
+        if (value != null) return value;
+        throw new ApiException(400, "INVALID_WEBSOCKET_PATH", "Missing session identifier");
+    }
+
+    private static String pathValue(Session session, String segment) {
         String[] parts = session.getUpgradeRequest().getRequestURI().getPath().split("/");
         for (int i = 0; i < parts.length - 1; i++) if (segment.equals(parts[i])) return parts[i + 1];
-        throw new ApiException(400, "INVALID_WEBSOCKET_PATH", "Missing session identifier");
+        return null;
     }
 
     static String safeMessage(Exception e) {
